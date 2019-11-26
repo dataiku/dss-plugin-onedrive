@@ -99,14 +99,13 @@ class CustomFSProvider(FSProvider):
         onedrive_item = self.client.get(full_path)
         
         if onedrive_item.is_file():
-            ret = {
+            return {
                 'fullPath' : self.get_lnt_path(path),
                 'exists' : True,
                 'directory' : False,
                 'lastModified': onedrive_item.get_last_modified(),
                 'size' : onedrive_item.get_size()
                 }
-            return ret
         elif onedrive_item.is_directory():
             children = []
             response = self.client.get_children(full_path)
@@ -120,17 +119,15 @@ class CustomFSProvider(FSProvider):
                     'lastModified': onedrive_item.get_last_modified(),
                     'size' : onedrive_item.get_size()
                     })
-            ret = {
+            return {
                 'fullPath' : self.get_lnt_path(path),
                 'exists' : True,
                 'directory' : True,
                 'lastModified': onedrive_item.get_last_modified(),
                 'children' : children
                 }
-            return ret
         else:
-            ret = {'fullPath' : None, 'exists' : False}
-            return ret
+            return {'fullPath' : None, 'exists' : False}
             
     def enumerate(self, path, first_non_empty):
         """
@@ -152,8 +149,7 @@ class CustomFSProvider(FSProvider):
                 'size': onedrive_item.get_size(),
                 'lastModified': onedrive_item.get_size()
             }]
-        ret = self.client.list_recursive(path, full_path, first_non_empty)
-        return ret
+        return self.list_recursive(path, full_path, first_non_empty)
 
     def list_recursive(self, path, full_path, first_non_empty):
         paths = []
