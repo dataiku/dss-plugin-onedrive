@@ -26,8 +26,7 @@ class CustomFSProvider(FSProvider):
         self.root = root
         self.provider_root = "/"
 
-        access_token = plugin_config.get('onedrive_connection')['onedrive_credentials']
-
+        access_token = config.get('onedrive_connection')['onedrive_credentials']
         self.client = OneDriveClient(access_token)
 
     # util methods
@@ -203,7 +202,8 @@ class CustomFSProvider(FSProvider):
 
         response = self.client.get_content(full_path)
         if response.status_code == 404:
-            raise Exception("File not found")
+            logger.error("File not found")
+            return
         bio = BytesIO(response.content)
         shutil.copyfileobj(bio, stream)
             
