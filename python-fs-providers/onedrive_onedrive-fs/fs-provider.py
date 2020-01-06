@@ -146,7 +146,7 @@ class CustomFSProvider(FSProvider):
             return [{
                 'path': self.get_lnt_path(path),
                 'size': onedrive_item.get_size(),
-                'lastModified': onedrive_item.get_size()
+                'lastModified': onedrive_item.get_last_modified()
             }]
         return self.list_recursive(path, full_path, first_non_empty)
 
