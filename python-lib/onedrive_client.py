@@ -1,10 +1,5 @@
 import os, requests, shutil
 
-try:
-    from BytesIO import BytesIO ## for Python 2
-except ImportError:
-    from io import BytesIO ## for Python 3
-
 from onedrive_item import OneDriveItem
 
 class OneDriveClient():
@@ -25,7 +20,7 @@ class OneDriveClient():
         file_size = self.file_size(file_handle)
         file_handle.seek(0)
         next_expected_range_low = 0
-        
+
         while file_handle.tell() < file_size:
             response = self.put(file_handle.read(self.CHUNK_SIZE), url, next_expected_range_low, file_size)
             next_expected_range_low = next_expected_range_low + self.CHUNK_SIZE
