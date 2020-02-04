@@ -1,6 +1,7 @@
 import json
 
 from datetime import datetime
+from onedrive_constants import *
 
 class OneDriveItem():
 
@@ -9,38 +10,38 @@ class OneDriveItem():
         self._exists = ("@odata.context" in self.description)
 
     def is_directory(self):
-        return "folder" in self.description
+        return ONEDRIVE_FOLDER in self.description
 
     def is_file(self):
-        return "file" in self.description
+        return ONEDRIVE_FILE in self.description
 
     def get_size(self):
-        if "size" in self.description:
-            return self.description["size"]
+        if ONEDRIVE_SIZE in self.description:
+            return self.description[ONEDRIVE_SIZE]
         else:
             return None
 
     def get_id(self):
-        if "id" in self.description:
-            return self.description["id"]
+        if ONEDRIVE_ID in self.description:
+            return self.description[ONEDRIVE_ID]
         else:
             return None
 
     def get_name(self):
-        if "name" in self.description:
-            return self.description["name"]
+        if ONEDRIVE_NAME in self.description:
+            return self.description[ONEDRIVE_NAME]
         else:
             return None
 
     def get_last_modified(self):
-        if "lastModifiedDateTime" in self.description:
-            return self.format_date(self.description["lastModifiedDateTime"])
+        if ONEDRIVE_LAST_MODIFIED in self.description:
+            return self.format_date(self.description[ONEDRIVE_LAST_MODIFIED])
         else:
             return None
 
     def format_date(self, date):
         if date is not None:
-            utc_time = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            utc_time = datetime.strptime(date, ONEDRIVE_TIME_FORMAT)
             epoch_time = (utc_time - datetime(1970, 1, 1)).total_seconds()
             return int(epoch_time) * 1000
         else:

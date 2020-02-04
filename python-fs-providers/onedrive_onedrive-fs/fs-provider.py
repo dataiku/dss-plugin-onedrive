@@ -4,6 +4,7 @@ import os, shutil, requests, urllib, logging
 
 from onedrive_client import OneDriveClient
 from onedrive_item import OneDriveItem
+from dss_constants import *
 
 try:
     from BytesIO import BytesIO ## for Python 2
@@ -60,22 +61,23 @@ class CustomFSProvider(FSProvider):
         """
         path = self.get_rel_path(path)
         full_path = self.get_lnt_path(self.get_full_path(path))
+        logger.info('stat:path="{}", full_path="{}"'.format(path, full_path))
 
         onedrive_item = self.client.get(full_path)
         
         if onedrive_item.is_directory():
             return {
-                'path': self.get_lnt_path(full_path),
-                'size': 0,
-                'lastModified': onedrive_item.get_last_modified(),
-                'isDirectory': True
+                DSS_PATH : self.get_lnt_path(full_path),
+                DSS_SIZE : 0,
+                DSS_LAST_MODIFIED : onedrive_item.get_last_modified(),
+                DSS_IS_DIRECTORY : True
             }
         elif onedrive_item.is_file():
             return {
-                'path': self.get_lnt_path(full_path),
-                'size': onedrive_item.get_size(),
-                'lastModified': onedrive_item.get_last_modified(),
-                'isDirectory': False
+                DSS_PATH : self.get_lnt_path(full_path),
+                DSS_SIZE : onedrive_item.get_size(),
+                DSS_LAST_MODIFIED : onedrive_item.get_last_modified(),
+                DSS_IS_DIRECTORY : False
             }
         else:
             return None
@@ -84,9 +86,7 @@ class CustomFSProvider(FSProvider):
         """
         Set the modification time on the object denoted by path. Return False if not possible
         """
-        full_path = self.get_full_path(path)
-        os.utime(full_path, (os.path.getatime(full_path), last_modified / 1000))
-        return True
+        return False
         
     def browse(self, path):
         """
@@ -94,16 +94,17 @@ class CustomFSProvider(FSProvider):
         """
         path = self.get_rel_path(path)
         full_path = self.get_lnt_path(self.get_full_path(path))
+        logger.info('browse:path="{}", full_path="{}"'.format(path, full_path))
         
         onedrive_item = self.client.get(full_path)
         
         if onedrive_item.is_file():
             return {
-                'fullPath' : self.get_lnt_path(path),
-                'exists' : True,
-                'directory' : False,
-                'lastModified': onedrive_item.get_last_modified(),
-                'size' : onedrive_item.get_size()
+                DSS_FULL_PATH : self.get_lnt_path(path),
+                DSS_EXISTS : True,
+                DSS_DIRECTORY : False,
+                DSS_LAST_MODIFIED : onedrive_item.get_last_modified(),
+                DSS_SIZE : onedrive_item.get_size()
                 }
         elif onedrive_item.is_directory():
             children = []
@@ -112,21 +113,21 @@ class CustomFSProvider(FSProvider):
                 onedrive_item = OneDriveItem(item)
                 sub_path = self.get_lnt_path(os.path.join(path, onedrive_item.get_name()))
                 children.append({
-                    'fullPath' : sub_path,
-                    'exists' : True,
-                    'directory' : onedrive_item.is_directory(),
-                    'lastModified': onedrive_item.get_last_modified(),
-                    'size' : onedrive_item.get_size()
+                    DSS_FULL_PATH : sub_path,
+                    DSS_EXISTS : True,
+                    DSS_DIRECTORY : onedrive_item.is_directory(),
+                    DSS_LAST_MODIFIED : onedrive_item.get_last_modified(),
+                    DSS_SIZE : onedrive_item.get_size()
                     })
             return {
-                'fullPath' : self.get_lnt_path(path),
-                'exists' : True,
-                'directory' : True,
-                'lastModified': onedrive_item.get_last_modified(),
-                'children' : children
+                DSS_FULL_PATH : self.get_lnt_path(path),
+                DSS_EXISTS : True,
+                DSS_DIRECTORY : True,
+                DSS_LAST_MODIFIED : onedrive_item.get_last_modified(),
+                DSS_CHILDREN : children
                 }
         else:
-            return {'fullPath' : None, 'exists' : False}
+            return {DSS_FULL_PATH : None, DSS_SIZE : False}
             
     def enumerate(self, path, first_non_empty):
         """
@@ -136,6 +137,7 @@ class CustomFSProvider(FSProvider):
         """
         path = self.get_rel_path(path)
         full_path = self.get_lnt_path(self.get_full_path(path))
+        logger.info('enumerate:path="{}", full_path="{}"'.format(path, full_path))
 
         onedrive_item = self.client.get(full_path)
 
@@ -144,9 +146,9 @@ class CustomFSProvider(FSProvider):
 
         if onedrive_item.is_file():
             return [{
-                'path': self.get_lnt_path(path),
-                'size': onedrive_item.get_size(),
-                'lastModified': onedrive_item.get_last_modified()
+                DSS_PATH : self.get_lnt_path(path),
+                DSS_SIZE : onedrive_item.get_size(),
+                DSS_LAST_MODIFIED : onedrive_item.get_last_modified()
             }]
         return self.list_recursive(path, full_path, first_non_empty)
 
@@ -163,8 +165,8 @@ class CustomFSProvider(FSProvider):
                 ))
             else:
                 paths.append({
-                    'path': self.get_lnt_path(path + "/" + onedrive_child.get_name()),
-                    'size': onedrive_child.get_size()
+                    DSS_PATH : self.get_lnt_path(path + "/" + onedrive_child.get_name()),
+                    DSS_SIZE : onedrive_child.get_size()
                 })
                 if first_non_empty:
                     return paths
@@ -175,6 +177,7 @@ class CustomFSProvider(FSProvider):
         Delete recursively from path. Return the number of deleted files (optional)
         """
         full_path = self.get_full_path(path)
+        logger.info('delete_recursive:path="{}", full_path="{}"'.format(path, full_path))
         self.assert_path_is_valid(full_path)
         response = self.client.delete(full_path)
         if response.status_code == 204:
@@ -186,6 +189,7 @@ class CustomFSProvider(FSProvider):
         """
         full_from_path = self.get_full_path(from_path)
         full_to_path = self.get_full_path(to_path)
+        logger.info('move:from "{}", to "{}"'.format(full_from_path, full_to_path))
 
         path, from_filename = os.path.split(full_from_path)
         path, to_filename = os.path.split(full_to_path)
@@ -199,6 +203,7 @@ class CustomFSProvider(FSProvider):
         Read the object denoted by path into the stream. Limit is an optional bound on the number of bytes to send
         """
         full_path = self.get_full_path(path)
+        logger.info('read:path="{}", full_path="{}"'.format(path, full_path))
 
         response = self.client.get_content(full_path)
         if response.status_code == 404:
@@ -212,6 +217,7 @@ class CustomFSProvider(FSProvider):
         Write the stream to the object denoted by path into the stream
         """
         full_path = self.get_full_path(path)
+        logger.info('write:path="{}", full_path="{}"'.format(path, full_path))
         
         bio = BytesIO()
         shutil.copyfileobj(stream, bio)

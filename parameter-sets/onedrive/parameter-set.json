@@ -1,6 +1,6 @@
 {
     "meta": {
-        "label": "Parameter set onedrive-set-id",
+        "label": "OneDrive OAuth details",
         "description": "",
         "icon": "icon-cloud"
     },

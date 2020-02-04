@@ -6,6 +6,7 @@ except ImportError:
     from io import BytesIO ## for Python 3
 
 from onedrive_item import OneDriveItem
+from onedrive_constants import *
 
 class OneDriveClient():
     access_token = None
@@ -44,22 +45,22 @@ class OneDriveClient():
         return file_handle.tell()
 
     def create_upload_session(self, path, metadata=None):
-        response = self.post(path, command = "createUploadSession")
+        response = self.post(path, command = ONEDRIVE_CREATE_UPLOAD_SESSION)
         response_json = response.json()
-        if "uploadUrl" in response_json:
-            return response_json["uploadUrl"]
+        if ONEDRIVE_UPLOAD_URL in response_json:
+            return response_json[ONEDRIVE_UPLOAD_URL]
         else:
             raise Exception("Can't create upload session")
 
     def loop_items(self, response):
-        if "value" in response:
-            return response["value"]
+        if ONEDRIVE_VALUE_CONTAINER in response:
+            return response[ONEDRIVE_VALUE_CONTAINER]
         else:
             return None
 
     def onedrive_path(self, path):
         if path == "" or path == "/":
-            return "root"
+            return ONEDRIVE_ROOT
         else:
             return "root:" + path + ":"
 
@@ -83,7 +84,7 @@ class OneDriveClient():
             }
         }
         if description is not None:
-            metadata["item"]["description"] = description
+            metadata[ONEDRIVE_ITEM][ONEDRIVE_DESCRIPTION] = description
         return metadata
 
     def move(self, from_path, to_path):
