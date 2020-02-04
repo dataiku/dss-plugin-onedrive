@@ -41,7 +41,11 @@ class OneDriveItem():
 
     def format_date(self, date):
         if date is not None:
-            utc_time = datetime.strptime(date, ONEDRIVE_TIME_FORMAT)
+            try:
+                utc_time = datetime.strptime(date, ONEDRIVE_TIME_FORMAT)
+            except:
+                # freak incident when ms are = 0, can be ignored
+                return None
             epoch_time = (utc_time - datetime(1970, 1, 1)).total_seconds()
             return int(epoch_time) * 1000
         else:

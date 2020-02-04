@@ -5,12 +5,13 @@ import os, shutil, requests, urllib, logging
 from onedrive_client import OneDriveClient
 from onedrive_item import OneDriveItem
 from dss_constants import *
+from io import BytesIO
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO,
                     format='onedrive plugin %(levelname)s - %(message)s')
 
-class CustomFSProvider(FSProvider):
+class OneDriveFSProvider(FSProvider):
     def __init__(self, root, config, plugin_config):
         """
         :param root: the root path for this provider
