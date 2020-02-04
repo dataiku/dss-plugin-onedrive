@@ -6,11 +6,6 @@ from onedrive_client import OneDriveClient
 from onedrive_item import OneDriveItem
 from dss_constants import *
 
-try:
-    from BytesIO import BytesIO ## for Python 2
-except ImportError:
-    from io import BytesIO ## for Python 3
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO,
                     format='onedrive plugin %(levelname)s - %(message)s')
@@ -56,7 +51,7 @@ class CustomFSProvider(FSProvider):
 
     def stat(self, path):
         """
-        Get the info about the object at the given path inside the provider's root, or None 
+        Get the info about the object at the given path inside the provider's root, or None
         if the object doesn't exist
         """
         path = self.get_rel_path(path)
@@ -64,7 +59,7 @@ class CustomFSProvider(FSProvider):
         logger.info('stat:path="{}", full_path="{}"'.format(path, full_path))
 
         onedrive_item = self.client.get(full_path)
-        
+
         if onedrive_item.is_directory():
             return {
                 DSS_PATH : self.get_lnt_path(full_path),
@@ -81,7 +76,7 @@ class CustomFSProvider(FSProvider):
             }
         else:
             return None
-            
+
     def set_last_modified(self, path, last_modified):
         """
         Set the modification time on the object denoted by path. Return False if not possible
@@ -97,7 +92,7 @@ class CustomFSProvider(FSProvider):
         logger.info('browse:path="{}", full_path="{}"'.format(path, full_path))
         
         onedrive_item = self.client.get(full_path)
-        
+
         if onedrive_item.is_file():
             return {
                 DSS_FULL_PATH : self.get_lnt_path(path),
@@ -132,7 +127,7 @@ class CustomFSProvider(FSProvider):
     def enumerate(self, path, first_non_empty):
         """
         Enumerate files recursively from prefix. If first_non_empty, stop at the first non-empty file.
-        
+
         If the prefix doesn't denote a file or folder, return None
         """
         path = self.get_rel_path(path)
@@ -182,7 +177,7 @@ class CustomFSProvider(FSProvider):
         response = self.client.delete(full_path)
         if response.status_code == 204:
             return 1
-            
+
     def move(self, from_path, to_path):
         """
         Move a file or folder to a new path inside the provider's root. Return false if the moved file didn't exist
@@ -197,7 +192,7 @@ class CustomFSProvider(FSProvider):
             return self.client.move(full_from_path, full_to_path)
         else:
             return self.client.rename(full_from_path, full_to_path)
-            
+
     def read(self, path, stream, limit):
         """
         Read the object denoted by path into the stream. Limit is an optional bound on the number of bytes to send
@@ -211,7 +206,7 @@ class CustomFSProvider(FSProvider):
             return
         bio = BytesIO(response.content)
         shutil.copyfileobj(bio, stream)
-            
+
     def write(self, path, stream):
         """
         Write the stream to the object denoted by path into the stream
