@@ -1,7 +1,6 @@
-import json
-
 from datetime import datetime
-from onedrive_constants import *
+from onedrive_constants import OneDriveConstants
+
 
 class OneDriveItem():
 
@@ -10,39 +9,39 @@ class OneDriveItem():
         self._exists = ("@odata.context" in self.description)
 
     def is_directory(self):
-        return ONEDRIVE_FOLDER in self.description
+        return OneDriveConstants.FOLDER in self.description
 
     def is_file(self):
-        return ONEDRIVE_FILE in self.description
+        return OneDriveConstants.FILE in self.description
 
     def get_size(self):
-        if ONEDRIVE_SIZE in self.description:
-            return self.description[ONEDRIVE_SIZE]
+        if OneDriveConstants.SIZE in self.description:
+            return self.description[OneDriveConstants.SIZE]
         else:
             return None
 
     def get_id(self):
-        if ONEDRIVE_ID in self.description:
-            return self.description[ONEDRIVE_ID]
+        if OneDriveConstants.ID in self.description:
+            return self.description[OneDriveConstants.ID]
         else:
             return None
 
     def get_name(self):
-        if ONEDRIVE_NAME in self.description:
-            return self.description[ONEDRIVE_NAME]
+        if OneDriveConstants.NAME in self.description:
+            return self.description[OneDriveConstants.NAME]
         else:
             return None
 
     def get_last_modified(self):
-        if ONEDRIVE_LAST_MODIFIED in self.description:
-            return self.format_date(self.description[ONEDRIVE_LAST_MODIFIED])
+        if OneDriveConstants.LAST_MODIFIED in self.description:
+            return self.format_date(self.description[OneDriveConstants.LAST_MODIFIED])
         else:
             return None
 
     def format_date(self, date):
         if date is not None:
             try:
-                utc_time = datetime.strptime(date, ONEDRIVE_TIME_FORMAT)
+                utc_time = datetime.strptime(date, OneDriveConstants.TIME_FORMAT)
             except:
                 # freak incident when ms are = 0, can be ignored
                 return None

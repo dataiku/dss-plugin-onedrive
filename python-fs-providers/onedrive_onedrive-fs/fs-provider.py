@@ -1,15 +1,18 @@
 from dataiku.fsprovider import FSProvider
 
-import os, shutil, requests, urllib, logging
+import os
+import shutil
+import logging
 
 from onedrive_client import OneDriveClient
 from onedrive_item import OneDriveItem
-from dss_constants import *
+from dss_constants import DSSConstants
 from io import BytesIO
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO,
                     format='onedrive plugin %(levelname)s - %(message)s')
+
 
 class OneDriveFSProvider(FSProvider):
     def __init__(self, root, config, plugin_config):
@@ -31,12 +34,14 @@ class OneDriveFSProvider(FSProvider):
         if len(path) > 0 and path[0] == '/':
             path = path[1:]
         return path
+
     def get_lnt_path(self, path):
         if len(path) == 0 or path == '/':
             return '/'
         elts = path.split('/')
         elts = [e for e in elts if len(e) > 0]
         return '/' + '/'.join(elts)
+
     def get_full_path(self, path):
         normalized_path = self.get_lnt_path(path)
         if normalized_path == '/':
@@ -63,17 +68,17 @@ class OneDriveFSProvider(FSProvider):
 
         if onedrive_item.is_directory():
             return {
-                DSS_PATH : self.get_lnt_path(full_path),
-                DSS_SIZE : 0,
-                DSS_LAST_MODIFIED : onedrive_item.get_last_modified(),
-                DSS_IS_DIRECTORY : True
+                DSSConstants.PATH: self.get_lnt_path(full_path),
+                DSSConstants.SIZE: 0,
+                DSSConstants.LAST_MODIFIED: onedrive_item.get_last_modified(),
+                DSSConstants.IS_DIRECTORY: True
             }
         elif onedrive_item.is_file():
             return {
-                DSS_PATH : self.get_lnt_path(full_path),
-                DSS_SIZE : onedrive_item.get_size(),
-                DSS_LAST_MODIFIED : onedrive_item.get_last_modified(),
-                DSS_IS_DIRECTORY : False
+                DSSConstants.PATH: self.get_lnt_path(full_path),
+                DSSConstants.SIZE: onedrive_item.get_size(),
+                DSSConstants.LAST_MODIFIED: onedrive_item.get_last_modified(),
+                DSSConstants.IS_DIRECTORY: False
             }
         else:
             return None
@@ -83,7 +88,7 @@ class OneDriveFSProvider(FSProvider):
         Set the modification time on the object denoted by path. Return False if not possible
         """
         return False
-        
+
     def browse(self, path):
         """
         List the file or directory at the given path, and its children (if directory)
@@ -91,17 +96,17 @@ class OneDriveFSProvider(FSProvider):
         path = self.get_rel_path(path)
         full_path = self.get_lnt_path(self.get_full_path(path))
         logger.info('browse:path="{}", full_path="{}"'.format(path, full_path))
-        
+
         onedrive_item = self.client.get(full_path)
 
         if onedrive_item.is_file():
             return {
-                DSS_FULL_PATH : self.get_lnt_path(path),
-                DSS_EXISTS : True,
-                DSS_DIRECTORY : False,
-                DSS_LAST_MODIFIED : onedrive_item.get_last_modified(),
-                DSS_SIZE : onedrive_item.get_size()
-                }
+                DSSConstants.FULL_PATH: self.get_lnt_path(path),
+                DSSConstants.EXISTS: True,
+                DSSConstants.DIRECTORY: False,
+                DSSConstants.LAST_MODIFIED: onedrive_item.get_last_modified(),
+                DSSConstants.SIZE: onedrive_item.get_size()
+            }
         elif onedrive_item.is_directory():
             children = []
             response = self.client.get_children(full_path)
@@ -109,22 +114,22 @@ class OneDriveFSProvider(FSProvider):
                 onedrive_item = OneDriveItem(item)
                 sub_path = self.get_lnt_path(os.path.join(path, onedrive_item.get_name()))
                 children.append({
-                    DSS_FULL_PATH : sub_path,
-                    DSS_EXISTS : True,
-                    DSS_DIRECTORY : onedrive_item.is_directory(),
-                    DSS_LAST_MODIFIED : onedrive_item.get_last_modified(),
-                    DSS_SIZE : onedrive_item.get_size()
-                    })
+                    DSSConstants.FULL_PATH: sub_path,
+                    DSSConstants.EXISTS: True,
+                    DSSConstants.DIRECTORY: onedrive_item.is_directory(),
+                    DSSConstants.LAST_MODIFIED: onedrive_item.get_last_modified(),
+                    DSSConstants.SIZE: onedrive_item.get_size()
+                })
             return {
-                DSS_FULL_PATH : self.get_lnt_path(path),
-                DSS_EXISTS : True,
-                DSS_DIRECTORY : True,
-                DSS_LAST_MODIFIED : onedrive_item.get_last_modified(),
-                DSS_CHILDREN : children
-                }
+                DSSConstants.FULL_PATH: self.get_lnt_path(path),
+                DSSConstants.EXISTS: True,
+                DSSConstants.DIRECTORY: True,
+                DSSConstants.LAST_MODIFIED: onedrive_item.get_last_modified(),
+                DSSConstants.CHILDREN: children
+            }
         else:
-            return {DSS_FULL_PATH : None, DSS_SIZE : False}
-            
+            return {DSSConstants.FULL_PATH: None, DSSConstants.SIZE: False}
+
     def enumerate(self, path, first_non_empty):
         """
         Enumerate files recursively from prefix. If first_non_empty, stop at the first non-empty file.
@@ -142,9 +147,9 @@ class OneDriveFSProvider(FSProvider):
 
         if onedrive_item.is_file():
             return [{
-                DSS_PATH : self.get_lnt_path(path),
-                DSS_SIZE : onedrive_item.get_size(),
-                DSS_LAST_MODIFIED : onedrive_item.get_last_modified()
+                DSSConstants.PATH: self.get_lnt_path(path),
+                DSSConstants.SIZE: onedrive_item.get_size(),
+                DSSConstants.LAST_MODIFIED: onedrive_item.get_last_modified()
             }]
         return self.list_recursive(path, full_path, first_non_empty)
 
@@ -161,8 +166,8 @@ class OneDriveFSProvider(FSProvider):
                 ))
             else:
                 paths.append({
-                    DSS_PATH : self.get_lnt_path(path + "/" + onedrive_child.get_name()),
-                    DSS_SIZE : onedrive_child.get_size()
+                    DSSConstants.PATH: self.get_lnt_path(path + "/" + onedrive_child.get_name()),
+                    DSSConstants.SIZE: onedrive_child.get_size()
                 })
                 if first_non_empty:
                     return paths
@@ -214,7 +219,7 @@ class OneDriveFSProvider(FSProvider):
         """
         full_path = self.get_full_path(path)
         logger.info('write:path="{}", full_path="{}"'.format(path, full_path))
-        
+
         bio = BytesIO()
         shutil.copyfileobj(stream, bio)
         bio.seek(0)

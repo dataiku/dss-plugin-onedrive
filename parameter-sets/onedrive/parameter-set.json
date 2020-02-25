@@ -14,8 +14,6 @@
             "type": "CREDENTIAL_REQUEST",
             "credentialRequestSettings": {
                 "type": "OAUTH2",
-                "oauth2Flow": "authorization_code",
-                "oauth2Provider": "AZURE",
                 "authorizationEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
                 "tokenEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
                 "scope": "openid offline_access onedrive.readwrite onedrive.appfolder"
