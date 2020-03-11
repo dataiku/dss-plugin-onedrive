@@ -128,7 +128,7 @@ class OneDriveFSProvider(FSProvider):
                 DSSConstants.CHILDREN: children
             }
         else:
-            return {DSSConstants.FULL_PATH: None, DSSConstants.SIZE: False}
+            return {DSSConstants.FULL_PATH: None}
 
     def enumerate(self, path, first_non_empty):
         """
