@@ -42,7 +42,7 @@ class OneDriveItem():
         if date is not None:
             try:
                 utc_time = datetime.strptime(date, OneDriveConstants.TIME_FORMAT)
-            except:
+            except Exception:
                 # freak incident when ms are = 0, can be ignored
                 return None
             epoch_time = (utc_time - datetime(1970, 1, 1)).total_seconds()
