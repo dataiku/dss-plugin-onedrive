@@ -1,0 +1,17 @@
+{
+    "id": "onedrive",
+    "version": "1.0.0",
+    "meta": {
+        "label": "OneDrive",
+        "description": "Read and write data from/to your OneDrive account",
+        "author": "Dataiku (Alex Bourret)",
+        "icon": "icon-cloud",
+        "tags": [
+            "Connector",
+            "Cloud"
+        ],
+        "url": "https://www.dataiku.com/dss/plugins/info/onedrive.html",
+        "licenseInfo": "Apache Software License",
+        "supportLevel": "NOT_SUPPORTED"
+    }
+}

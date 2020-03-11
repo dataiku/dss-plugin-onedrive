@@ -1,0 +1,23 @@
+{
+    "meta": {
+        "label": "OneDrive OAuth details",
+        "description": "",
+        "icon": "icon-cloud"
+    },
+    "defaultDefinableInline": true,
+    "defaultDefinableAtProjectLevel": true,
+    "pluginParams": [
+    ],
+    "params": [
+        {
+            "name": "onedrive_credentials",
+            "type": "CREDENTIAL_REQUEST",
+            "credentialRequestSettings": {
+                "type": "OAUTH2",
+                "authorizationEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                "tokenEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                "scope": "openid offline_access onedrive.readwrite onedrive.appfolder"
+            }
+        }
+    ]
+}
