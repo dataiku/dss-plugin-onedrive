@@ -2,16 +2,14 @@ from dataiku.fsprovider import FSProvider
 
 import os
 import shutil
-import logging
 
 from onedrive_client import OneDriveClient
 from onedrive_item import OneDriveItem
 from dss_constants import DSSConstants
 from io import BytesIO
+from safe_logger import SafeLogger
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO,
-                    format='onedrive plugin %(levelname)s - %(message)s')
+logger = SafeLogger("onedrive plugin", forbiden_keys=["onedrive_credentials"])
 
 
 class OneDriveFSProvider(FSProvider):
@@ -21,6 +19,11 @@ class OneDriveFSProvider(FSProvider):
         :param config: the dict of the configuration of the object
         :param plugin_config: contains the plugin settings
         """
+        logger.info("init:root={}, config={}, plugin_config={}".format(
+            root,
+            logger.filter_secrets(config),
+            logger.filter_secrets(plugin_config)
+        ))
         if len(root) > 0 and root[0] == '/':
             root = root[1:]
         self.root = root

@@ -8,8 +8,8 @@ from onedrive_constants import OneDriveConstants
 class OneDriveClient():
     access_token = None
     CHUNK_SIZE = 320 * 1024
-    DRIVE_API_URL = "https://api.onedrive.com/v1.0/drive/"
-    ITEMS_API_URL = "https://api.onedrive.com/v1.0/drive/items/"
+    DRIVE_API_URL = "https://graph.microsoft.com/v1.0/me/drive/"
+    ITEMS_API_URL = "https://graph.microsoft.com/v1.0/me/drive/items/"
 
     def __init__(self, access_token):
         self.access_token = access_token
@@ -30,7 +30,7 @@ class OneDriveClient():
 
     def put(self, data, url, next_expected_range_low, file_size):
         headers = {
-            "authorization": 'bearer ' + self.access_token,
+            "Authorization": 'bearer {}'.format(self.access_token),
             "Content-Length": "{}".format(len(data)),
             "Content-Range": "bytes {}-{}/{}".format(next_expected_range_low, next_expected_range_low + len(data) - 1, file_size)
         }
@@ -111,7 +111,8 @@ class OneDriveClient():
 
     def get(self, path):
         onedrive_path = self.onedrive_path(path)
-        response = requests.get(self.DRIVE_API_URL + onedrive_path, headers=self.generate_header())
+        headers = self.generate_header()
+        response = requests.get(self.DRIVE_API_URL + onedrive_path, headers=headers)
         onedrive_item = OneDriveItem(response.json())
         return onedrive_item
 
@@ -132,8 +133,8 @@ class OneDriveClient():
 
     def generate_header(self, content_type=None):
         header = {
-            'content-Type': 'application/x-www-form-urlencoded',
-            'authorization': 'bearer ' + self.access_token
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'bearer {}'.format(self.access_token)
             }
         if content_type is not None:
             header['content-Type'] = content_type
