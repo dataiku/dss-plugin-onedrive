@@ -67,7 +67,7 @@ class OneDriveFSProvider(FSProvider):
         full_path = self.get_lnt_path(self.get_full_path(path))
         logger.info('stat:path="{}", full_path="{}"'.format(path, full_path))
 
-        onedrive_item = self.client.get(full_path)
+        onedrive_item = self.client.get_item(full_path)
 
         if onedrive_item.is_directory():
             return {
@@ -100,7 +100,7 @@ class OneDriveFSProvider(FSProvider):
         full_path = self.get_lnt_path(self.get_full_path(path))
         logger.info('browse:path="{}", full_path="{}"'.format(path, full_path))
 
-        onedrive_item = self.client.get(full_path)
+        onedrive_item = self.client.get_item(full_path)
 
         if onedrive_item.is_file():
             return {
@@ -139,22 +139,22 @@ class OneDriveFSProvider(FSProvider):
 
         If the prefix doesn't denote a file or folder, return None
         """
-        path = self.get_rel_path(path)
         full_path = self.get_lnt_path(self.get_full_path(path))
         logger.info('enumerate:path="{}", full_path="{}"'.format(path, full_path))
 
-        onedrive_item = self.client.get(full_path)
+        onedrive_item = self.client.get_item(full_path)
 
         if not onedrive_item.exists():
             return None
 
         if onedrive_item.is_file():
             return [{
-                DSSConstants.PATH: self.get_lnt_path(path),
+                DSSConstants.PATH: path,
                 DSSConstants.SIZE: onedrive_item.get_size(),
                 DSSConstants.LAST_MODIFIED: onedrive_item.get_last_modified()
             }]
-        return self.list_recursive(path, full_path, first_non_empty)
+        ret = self.list_recursive(path, full_path, first_non_empty)
+        return ret
 
     def list_recursive(self, path, full_path, first_non_empty):
         paths = []

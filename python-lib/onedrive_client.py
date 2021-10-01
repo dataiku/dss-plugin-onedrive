@@ -1,8 +1,12 @@
 import os
 import requests
+from time import sleep
 
 from onedrive_item import OneDriveItem
 from onedrive_constants import OneDriveConstants
+from safe_logger import SafeLogger
+
+logger = SafeLogger("onedrive plugin", forbiden_keys=["onedrive_credentials"])
 
 
 class OneDriveClient():
@@ -42,12 +46,22 @@ class OneDriveClient():
         return file_handle.tell()
 
     def create_upload_session(self, path, metadata=None):
-        response = self.post(path, command=OneDriveConstants.CREATE_UPLOAD_SESSION)
-        response_json = response.json()
-        if OneDriveConstants.UPLOAD_URL in response_json:
-            return response_json[OneDriveConstants.UPLOAD_URL]
-        else:
-            raise Exception("Can't create upload session")
+        number_retries = OneDriveConstants.NB_RETRIES_ON_CREATE_UPLOAD_SESSION
+        while number_retries:
+            logger.info("create_upload_session post to {}".format(path))
+            response = self.post(path, command=OneDriveConstants.CREATE_UPLOAD_SESSION)
+            response_json = response.json()
+            if OneDriveConstants.UPLOAD_URL in response_json:
+                return response_json[OneDriveConstants.UPLOAD_URL]
+            else:
+                # When preceded by a delete, create_upload_session can return an itemNotFound error
+                # We wait a second before retrying
+                if get_value_from_path(response_json, ["error", "code"]) == "itemNotFound" and number_retries:
+                    number_retries -= 1
+                    logger.info("itemNotFound error on create_upload_session, retrying")
+                    sleep(OneDriveConstants.TIME_BEFORE_RETRIES)
+                else:
+                    raise Exception("Can't create upload session")
 
     def loop_items(self, response):
         if OneDriveConstants.VALUE_CONTAINER in response:
@@ -65,12 +79,11 @@ class OneDriveClient():
         return
 
     def post(self, path, command=None, metadata=None):
-        onedrive_path = self.onedrive_path(path)
         if command is None:
             command = ""
         else:
             command = "/" + command
-        response = requests.post(self.ITEMS_API_URL + onedrive_path + command, headers=self.generate_header())
+        response = requests.post(self.get_path_endpoint(path, is_item=True) + command, headers=self.generate_header())
         return response
 
     def get_upload_metadata(self, name, description=None):
@@ -85,15 +98,14 @@ class OneDriveClient():
         return metadata
 
     def move(self, from_path, to_path):
-        from_item = self.get(from_path)
+        from_item = self.get_item(from_path)
         path, filename = os.path.split(from_path)
         target_path, target_filename = os.path.split(to_path)
         if not from_item.exists():
             return False
-        to_item = self.get(target_path)
-        onedrive_from_path = self.onedrive_path(from_path)
+        to_item = self.get_item(target_path)
         requests.patch(
-            self.ITEMS_API_URL + onedrive_from_path,
+            self.get_path_endpoint(from_path, is_item=True),
             headers=self.generate_header(content_type="application/json"),
             json=self.generate_move_header(filename, to_item.get_id())
         )
@@ -101,35 +113,35 @@ class OneDriveClient():
 
     def rename(self, from_path, to_path):
         path, filename = os.path.split(to_path)
-        onedrive_from_path = self.onedrive_path(from_path)
         requests.patch(
-            self.ITEMS_API_URL + onedrive_from_path,
+            self.get_path_endpoint(from_path, is_item=True),
             headers=self.generate_header(content_type="application/json"),
             json=self.generate_rename_header(filename)
         )
         return True
 
-    def get(self, path):
-        onedrive_path = self.onedrive_path(path)
+    def get_item(self, path):
         headers = self.generate_header()
-        response = requests.get(self.DRIVE_API_URL + onedrive_path, headers=headers)
+        response = requests.get(self.get_path_endpoint(path), headers=headers)
         onedrive_item = OneDriveItem(response.json())
         return onedrive_item
 
     def delete(self, path):
-        onedrive_path = self.onedrive_path(path)
-        response = requests.delete(self.ITEMS_API_URL + onedrive_path, headers=self.generate_header())
+        response = requests.delete(self.get_path_endpoint(path, is_item=True), headers=self.generate_header())
         return response
 
     def get_children(self, path):
-        request = self.onedrive_path(path)
-        response = requests.get(self.DRIVE_API_URL + request + "/children", headers=self.generate_header())
+        response = requests.get(self.get_path_endpoint(path) + "/children", headers=self.generate_header())
         return response
 
     def get_content(self, path):
-        request = self.onedrive_path(path)
-        response = requests.get(self.DRIVE_API_URL + request + "/content", headers=self.generate_header())
+        response = requests.get(self.get_path_endpoint(path) + "/content", headers=self.generate_header())
         return response
+
+    def get_path_endpoint(self, path, drive=None, is_item=False):
+        onedrive_path = self.onedrive_path(path)
+        endpoint_root = self.ITEMS_API_URL if is_item else self.DRIVE_API_URL
+        return endpoint_root + onedrive_path
 
     def generate_header(self, content_type=None):
         header = {
@@ -154,3 +166,13 @@ class OneDriveClient():
             'name': name
         }
         return header
+
+
+def get_value_from_path(dictionary, path, default_reply=None):
+    ret = dictionary
+    for key in path:
+        if key in ret:
+            ret = ret.get(key)
+        else:
+            return default_reply
+    return ret

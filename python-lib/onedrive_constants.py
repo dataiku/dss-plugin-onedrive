@@ -1,14 +1,16 @@
 class OneDriveConstants(object):
-    UPLOAD_URL = "uploadUrl"
     CREATE_UPLOAD_SESSION = "createUploadSession"
-    VALUE_CONTAINER = "value"
-    ITEM = "item"
     DESCRIPTION = "description"
-    ROOT = "root"
-    FOLDER = "folder"
-    SIZE = "size"
     FILE = "file"
+    FOLDER = "folder"
     ID = "id"
-    NAME = "name"
+    ITEM = "item"
     LAST_MODIFIED = "lastModifiedDateTime"
+    NAME = "name"
+    NB_RETRIES_ON_CREATE_UPLOAD_SESSION = 2
+    ROOT = "root"
+    SIZE = "size"
+    TIME_BEFORE_RETRIES = 1
     TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+    UPLOAD_URL = "uploadUrl"
+    VALUE_CONTAINER = "value"
