@@ -10,6 +10,13 @@
             "label": "OneDrive connection",
             "type":"PRESET",
             "parameterSetId": "onedrive"
+        },
+        {
+            "name": "shared_folder",
+            "label": "Shared folder root",
+            "description": "To view a folder shared with me (Optional)",
+            "type": "STRING",
+            "default": ""
         }
     ]
 }

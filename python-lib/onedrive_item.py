@@ -5,7 +5,7 @@ from onedrive_constants import OneDriveConstants
 class OneDriveItem():
 
     def __init__(self, description):
-        self.description = description
+        self.description = description or {}
         self._exists = ("@odata.context" in self.description)
 
     def is_directory(self):
