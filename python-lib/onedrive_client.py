@@ -5,6 +5,7 @@ from time import sleep
 from onedrive_item import OneDriveItem
 from onedrive_constants import OneDriveConstants
 from safe_logger import SafeLogger
+from common import get_value_from_path
 
 logger = SafeLogger("onedrive plugin", forbiden_keys=["onedrive_credentials"])
 
@@ -207,13 +208,3 @@ class OneDriveClient():
             'name': name
         }
         return header
-
-
-def get_value_from_path(dictionary, path, default_reply=None):
-    ret = dictionary
-    for key in path:
-        if key in ret:
-            ret = ret.get(key)
-        else:
-            return default_reply
-    return ret
