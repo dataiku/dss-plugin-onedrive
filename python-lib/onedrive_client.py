@@ -141,10 +141,9 @@ class OneDriveClient():
         item_path, item_name = os.path.split(path.strip("/"))
         headers = self.generate_header()
         if item_path:
-            request_path = self.get_path_endpoint(item_path)
-            response = requests.get(request_path + '/children', headers=headers)
-            json_response = response.json()
-            return self.extract_item(json_response, item_name)
+            request_path = self.get_path_endpoint(path.strip("/"))
+            response = requests.get(request_path, headers=headers)
+            return OneDriveItem(response.json())
         else:
             return self.extract_item(self.shared_with_me, self.shared_folder_root)
 
