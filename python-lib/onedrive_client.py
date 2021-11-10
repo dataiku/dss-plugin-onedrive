@@ -20,7 +20,7 @@ class OneDriveClient():
 
     def upload(self, path, file_handle):
         # https://docs.microsoft.com/fr-fr/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
-        upload_url = self.create_upload_session(path, metadata=None)
+        upload_url = self.create_upload_session(path)
         self.upload_loop(file_handle, upload_url)
 
     def upload_loop(self, file_handle, url):
@@ -45,7 +45,7 @@ class OneDriveClient():
         file_handle.seek(0, 2)
         return file_handle.tell()
 
-    def create_upload_session(self, path, metadata=None):
+    def create_upload_session(self, path):
         number_retries = OneDriveConstants.NB_RETRIES_ON_CREATE_UPLOAD_SESSION
         while number_retries:
             logger.info("create_upload_session post to {}".format(path))
