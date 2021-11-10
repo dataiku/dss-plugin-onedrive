@@ -153,8 +153,7 @@ class OneDriveFSProvider(FSProvider):
                 DSSConstants.SIZE: onedrive_item.get_size(),
                 DSSConstants.LAST_MODIFIED: onedrive_item.get_last_modified()
             }]
-        ret = self.list_recursive(path, full_path, first_non_empty)
-        return ret
+        return self.list_recursive(path, full_path, first_non_empty)
 
     def list_recursive(self, path, full_path, first_non_empty):
         paths = []
