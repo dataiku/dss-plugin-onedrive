@@ -11,6 +11,6 @@ class OneDriveConstants(object):
     ROOT = "root"
     SIZE = "size"
     TIME_BEFORE_RETRIES = 1
-    TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+    TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
     UPLOAD_URL = "uploadUrl"
     VALUE_CONTAINER = "value"
