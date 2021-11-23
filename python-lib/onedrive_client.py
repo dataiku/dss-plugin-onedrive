@@ -138,7 +138,7 @@ class OneDriveClient():
         return onedrive_item
 
     def get_drive_item(self, path):
-        item_path, item_name = os.path.split(path.strip("/"))
+        item_path, _ = os.path.split(path.strip("/"))
         headers = self.generate_header()
         if item_path:
             request_path = self.get_path_endpoint(path.strip("/"))
