@@ -13,8 +13,8 @@
         },
         {
             "name": "shared_folder",
-            "label": "Shared folder root",
-            "description": "To view a folder shared with me (Optional)",
+            "label": "Shared folder name",
+            "description": "To view a folder shared with you (Optional)",
             "type": "STRING",
             "default": ""
         }
