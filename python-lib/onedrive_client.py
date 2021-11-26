@@ -5,6 +5,7 @@ from time import sleep
 from onedrive_item import OneDriveItem
 from onedrive_constants import OneDriveConstants
 from safe_logger import SafeLogger
+from common import get_value_from_path
 
 logger = SafeLogger("onedrive plugin", forbiden_keys=["onedrive_credentials"])
 
@@ -14,9 +15,17 @@ class OneDriveClient():
     CHUNK_SIZE = 320 * 1024
     DRIVE_API_URL = "https://graph.microsoft.com/v1.0/me/drive/"
     ITEMS_API_URL = "https://graph.microsoft.com/v1.0/me/drive/items/"
+    SHARED_API_URL = "https://graph.microsoft.com/v1.0/drives/{drive_id}/root:/{file_path}:"
+    SHARED_WITH_ME_URL = "https://graph.microsoft.com/v1.0/me/drive/sharedWithMe"
 
-    def __init__(self, access_token):
+    def __init__(self, access_token, shared_folder_root=""):
         self.access_token = access_token
+        self.shared_with_me = None
+        self.drive_id = None
+        self.shared_folder_root = shared_folder_root
+        if shared_folder_root:
+            self.shared_with_me = self.get_shared_with_me()
+            self.drive_id = self.get_shared_directory_drive_id(shared_folder_root)
 
     def upload(self, path, file_handle):
         # https://docs.microsoft.com/fr-fr/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
@@ -121,10 +130,40 @@ class OneDriveClient():
         return True
 
     def get_item(self, path):
+        if self.drive_id:
+            return self.get_drive_item(path)
         headers = self.generate_header()
-        response = requests.get(self.get_path_endpoint(path), headers=headers)
+        endpoint = self.get_path_endpoint(path)
+        response = requests.get(endpoint, headers=headers)
         onedrive_item = OneDriveItem(response.json())
         return onedrive_item
+
+    def get_drive_item(self, path):
+        item_path, _ = os.path.split(path.strip("/"))
+        headers = self.generate_header()
+        if item_path:
+            request_path = self.get_path_endpoint(path.strip("/"))
+            response = requests.get(request_path, headers=headers)
+            return OneDriveItem(response.json())
+        else:
+            return self.extract_item(self.shared_with_me, self.shared_folder_root)
+
+    def extract_item(self, items, item_name):
+        for item in items.get("value", []):
+            if item.get("name", "") == item_name:
+                onedrive_item = OneDriveItem(item)
+                return onedrive_item
+        return OneDriveItem(None)
+
+    def get_shared_with_me(self):
+        headers = self.generate_header()
+        response = requests.get(self.SHARED_WITH_ME_URL, headers=headers)
+        return response.json()
+
+    def get_shared_directory_drive_id(self, shared_directory_name):
+        for item in self.shared_with_me.get('value', []):
+            if item.get('name') == shared_directory_name:
+                return get_value_from_path(item, ["remoteItem", "parentReference", "driveId"])
 
     def delete(self, path):
         response = requests.delete(self.get_path_endpoint(path, is_item=True), headers=self.generate_header())
@@ -140,7 +179,10 @@ class OneDriveClient():
 
     def get_path_endpoint(self, path, drive=None, is_item=False):
         onedrive_path = self.onedrive_path(path)
-        endpoint_root = self.ITEMS_API_URL if is_item else self.DRIVE_API_URL
+        if self.drive_id:
+            return self.SHARED_API_URL.format(drive_id=self.drive_id, file_path=path.strip('/'))
+        else:
+            endpoint_root = self.ITEMS_API_URL if is_item else self.DRIVE_API_URL
         return endpoint_root + onedrive_path
 
     def generate_header(self, content_type=None):
@@ -166,13 +208,3 @@ class OneDriveClient():
             'name': name
         }
         return header
-
-
-def get_value_from_path(dictionary, path, default_reply=None):
-    ret = dictionary
-    for key in path:
-        if key in ret:
-            ret = ret.get(key)
-        else:
-            return default_reply
-    return ret

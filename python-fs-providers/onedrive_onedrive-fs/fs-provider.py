@@ -27,10 +27,10 @@ class OneDriveFSProvider(FSProvider):
         if len(root) > 0 and root[0] == '/':
             root = root[1:]
         self.root = root
-        self.provider_root = "/"
 
         access_token = config.get('onedrive_connection')['onedrive_credentials']
-        self.client = OneDriveClient(access_token)
+        self.shared_folder_root = config.get("shared_folder", "").strip("/")
+        self.client = OneDriveClient(access_token, shared_folder_root=self.shared_folder_root)
 
     # util methods
     def get_rel_path(self, path):
@@ -46,11 +46,8 @@ class OneDriveFSProvider(FSProvider):
         return '/' + '/'.join(elts)
 
     def get_full_path(self, path):
-        normalized_path = self.get_lnt_path(path)
-        if normalized_path == '/':
-            return self.get_lnt_path(self.root)
-        else:
-            return self.get_lnt_path(self.root) + normalized_path
+        ret = "/".join([self.shared_folder_root, self.root.strip("/"), path.strip("/")])
+        return ret
 
     def close(self):
         """
