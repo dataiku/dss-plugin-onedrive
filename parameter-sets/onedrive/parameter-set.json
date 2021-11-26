@@ -11,6 +11,7 @@
     "params": [
         {
             "name": "onedrive_credentials",
+            "label": "OneDrive credentials",
             "type": "CREDENTIAL_REQUEST",
             "credentialRequestSettings": {
                 "type": "OAUTH2",

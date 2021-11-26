@@ -27,10 +27,10 @@ class OneDriveFSProvider(FSProvider):
         if len(root) > 0 and root[0] == '/':
             root = root[1:]
         self.root = root
-        self.provider_root = "/"
 
         access_token = config.get('onedrive_connection')['onedrive_credentials']
-        self.client = OneDriveClient(access_token)
+        self.shared_folder_root = config.get("shared_folder", "").strip("/")
+        self.client = OneDriveClient(access_token, shared_folder_root=self.shared_folder_root)
 
     # util methods
     def get_rel_path(self, path):
@@ -46,11 +46,8 @@ class OneDriveFSProvider(FSProvider):
         return '/' + '/'.join(elts)
 
     def get_full_path(self, path):
-        normalized_path = self.get_lnt_path(path)
-        if normalized_path == '/':
-            return self.get_lnt_path(self.root)
-        else:
-            return self.get_lnt_path(self.root) + normalized_path
+        ret = "/".join([self.shared_folder_root, self.root.strip("/"), path.strip("/")])
+        return ret
 
     def close(self):
         """
@@ -67,7 +64,7 @@ class OneDriveFSProvider(FSProvider):
         full_path = self.get_lnt_path(self.get_full_path(path))
         logger.info('stat:path="{}", full_path="{}"'.format(path, full_path))
 
-        onedrive_item = self.client.get(full_path)
+        onedrive_item = self.client.get_item(full_path)
 
         if onedrive_item.is_directory():
             return {
@@ -100,7 +97,7 @@ class OneDriveFSProvider(FSProvider):
         full_path = self.get_lnt_path(self.get_full_path(path))
         logger.info('browse:path="{}", full_path="{}"'.format(path, full_path))
 
-        onedrive_item = self.client.get(full_path)
+        onedrive_item = self.client.get_item(full_path)
 
         if onedrive_item.is_file():
             return {
@@ -139,18 +136,17 @@ class OneDriveFSProvider(FSProvider):
 
         If the prefix doesn't denote a file or folder, return None
         """
-        path = self.get_rel_path(path)
         full_path = self.get_lnt_path(self.get_full_path(path))
         logger.info('enumerate:path="{}", full_path="{}"'.format(path, full_path))
 
-        onedrive_item = self.client.get(full_path)
+        onedrive_item = self.client.get_item(full_path)
 
         if not onedrive_item.exists():
             return None
 
         if onedrive_item.is_file():
             return [{
-                DSSConstants.PATH: self.get_lnt_path(path),
+                DSSConstants.PATH: path,
                 DSSConstants.SIZE: onedrive_item.get_size(),
                 DSSConstants.LAST_MODIFIED: onedrive_item.get_last_modified()
             }]
