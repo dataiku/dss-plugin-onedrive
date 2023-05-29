@@ -19,7 +19,8 @@ class OneDriveFSProvider(FSProvider):
         :param config: the dict of the configuration of the object
         :param plugin_config: contains the plugin settings
         """
-        logger.info("OneDrive fs-provider v1.1.0 init:root={}, config={}, plugin_config={}".format(
+        logger.info("OneDrive fs-provider v{} init:root={}, config={}, plugin_config={}".format(
+            DSSConstants.PLUGIN_VERSION,
             root,
             logger.filter_secrets(config),
             logger.filter_secrets(plugin_config)
