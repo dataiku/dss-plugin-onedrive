@@ -1,5 +1,9 @@
 # Changelog
 
+## [Version 1.1.0](https://github.com/dataiku/dss-plugin-onedrive/releases/tag/v1.1.0) - Bugfix release - 2023-05-26
+
+- List directory content past 200 items
+
 ## [Version 1.0.3](https://github.com/dataiku/dss-plugin-onedrive/releases/tag/v1.0.3) - Bugfix release - 2023-04-20
 
 - Updated code-env descriptor for DSS 12
