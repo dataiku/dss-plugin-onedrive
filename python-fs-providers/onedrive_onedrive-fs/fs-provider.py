@@ -19,7 +19,7 @@ class OneDriveFSProvider(FSProvider):
         :param config: the dict of the configuration of the object
         :param plugin_config: contains the plugin settings
         """
-        logger.info("init:root={}, config={}, plugin_config={}".format(
+        logger.info("OneDrive fs-provider v1.1.0 init:root={}, config={}, plugin_config={}".format(
             root,
             logger.filter_secrets(config),
             logger.filter_secrets(plugin_config)
@@ -109,8 +109,7 @@ class OneDriveFSProvider(FSProvider):
             }
         elif onedrive_item.is_directory():
             children = []
-            response = self.client.get_children(full_path)
-            for item in self.client.loop_items(response.json()):
+            for item in self.client.get_children(full_path):
                 onedrive_item = OneDriveItem(item)
                 sub_path = self.get_lnt_path(os.path.join(path, onedrive_item.get_name()))
                 children.append({
@@ -154,8 +153,7 @@ class OneDriveFSProvider(FSProvider):
 
     def list_recursive(self, path, full_path, first_non_empty):
         paths = []
-        response = self.client.get_children(full_path)
-        for child in self.client.loop_items(response.json()):
+        for child in self.client.get_children(full_path):
             onedrive_child = OneDriveItem(child)
             if onedrive_child.is_directory():
                 paths.extend(self.list_recursive(
