@@ -26,6 +26,8 @@ class OneDriveClient():
         if shared_folder_root:
             self.shared_with_me = self.get_shared_with_me()
             self.drive_id = self.get_shared_directory_drive_id(shared_folder_root)
+        self.session = requests.Session()
+        self.session.auth = BearerTokenAuth(access_token)
 
     def upload(self, path, file_handle):
         # https://docs.microsoft.com/fr-fr/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
@@ -43,11 +45,10 @@ class OneDriveClient():
 
     def put(self, data, url, next_expected_range_low, file_size):
         headers = {
-            "Authorization": 'bearer {}'.format(self.access_token),
             "Content-Length": "{}".format(len(data)),
             "Content-Range": "bytes {}-{}/{}".format(next_expected_range_low, next_expected_range_low + len(data) - 1, file_size)
         }
-        response = requests.put(url, headers=headers, data=data)
+        response = self.session.put(url, headers=headers, data=data)
         return response
 
     def file_size(self, file_handle):
@@ -93,19 +94,8 @@ class OneDriveClient():
         else:
             command = "/" + command
         headers = self.generate_header()
-        response = requests.post(self.get_path_endpoint(path, is_item=True) + command, headers=headers)
+        response = self.session.post(self.get_path_endpoint(path, is_item=True) + command, headers=headers)
         return response
-
-    def get_upload_metadata(self, name, description=None):
-        metadata = {
-            "item": {
-                "@microsoft.graph.conflictBehavior": "rename",
-                "name": name
-            }
-        }
-        if description is not None:
-            metadata[OneDriveConstants.ITEM][OneDriveConstants.DESCRIPTION] = description
-        return metadata
 
     def move(self, from_path, to_path):
         from_item = self.get_item(from_path)
@@ -114,7 +104,7 @@ class OneDriveClient():
         if not from_item.exists():
             return False
         to_item = self.get_item(target_path)
-        requests.patch(
+        self.session.patch(
             self.get_path_endpoint(from_path, is_item=True),
             headers=self.generate_header(content_type="application/json"),
             json=self.generate_move_header(filename, to_item.get_id())
@@ -123,7 +113,7 @@ class OneDriveClient():
 
     def rename(self, from_path, to_path):
         path, filename = os.path.split(to_path)
-        requests.patch(
+        self.session.patch(
             self.get_path_endpoint(from_path, is_item=True),
             headers=self.generate_header(content_type="application/json"),
             json=self.generate_rename_header(filename)
@@ -135,7 +125,7 @@ class OneDriveClient():
             return self.get_drive_item(path)
         headers = self.generate_header()
         endpoint = self.get_path_endpoint(path)
-        response = requests.get(endpoint, headers=headers)
+        response = self.session.get(endpoint, headers=headers)
         onedrive_item = OneDriveItem(response.json())
         return onedrive_item
 
@@ -144,7 +134,7 @@ class OneDriveClient():
         headers = self.generate_header()
         if item_path:
             request_path = self.get_path_endpoint(path.strip("/"))
-            response = requests.get(request_path, headers=headers)
+            response = self.session.get(request_path, headers=headers)
             return OneDriveItem(response.json())
         else:
             return self.extract_item(self.shared_with_me, self.shared_folder_root)
@@ -158,7 +148,7 @@ class OneDriveClient():
 
     def get_shared_with_me(self):
         headers = self.generate_header()
-        response = requests.get(self.SHARED_WITH_ME_URL, headers=headers)
+        response = self.session.get(self.SHARED_WITH_ME_URL, headers=headers)
         return response.json()
 
     def get_shared_directory_drive_id(self, shared_directory_name):
@@ -167,13 +157,13 @@ class OneDriveClient():
                 return get_value_from_path(item, ["remoteItem", "parentReference", "driveId"])
 
     def delete(self, path):
-        response = requests.delete(self.get_path_endpoint(path, is_item=True), headers=self.generate_header())
+        response = self.session.delete(self.get_path_endpoint(path, is_item=True), headers=self.generate_header())
         return response
 
     def get_children(self, path):
         url = self.get_path_endpoint(path) + "/children"
         while url:
-            response = requests.get(url, headers=self.generate_header())
+            response = self.session.get(url, headers=self.generate_header())
             assert_response_ok(response)
             json_response = response.json()
             next_page_url = get_next_page_url(json_response)
@@ -183,7 +173,7 @@ class OneDriveClient():
                 yield child
 
     def get_content(self, path):
-        response = requests.get(self.get_path_endpoint(path) + "/content", headers=self.generate_header())
+        response = self.session.get(self.get_path_endpoint(path) + "/content", headers=self.generate_header())
         return response
 
     def get_path_endpoint(self, path, drive=None, is_item=False):
@@ -194,13 +184,20 @@ class OneDriveClient():
             endpoint_root = self.ITEMS_API_URL if is_item else self.DRIVE_API_URL
         return endpoint_root + onedrive_path
 
+    def get(self, url, headers=None):
+        headers = headers or {}
+        headers.update({'Content-Type': 'application/json'})
+        response = self.session.get(url, headers=headers)
+        assert_response_ok(response)
+        json_response = response.json()
+        return json_response
+
     def generate_header(self, content_type=None):
         header = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'bearer {}'.format(self.access_token)
-            }
+            'Content-Type': 'application/json'
+        }
         if content_type is not None:
-            header['content-Type'] = content_type
+            header['Content-Type'] = content_type
         return header
 
     def generate_move_header(self, name, parent_reference_id):
@@ -222,7 +219,7 @@ class OneDriveClient():
 def assert_response_ok(response, context=None, can_raise=True):
     error_message = None
     response_has_content = False
-    if type(response) != requests.models.Response:
+    if type(response) is not requests.models.Response:
         error_message = "Incorrect response"
     else:
         response_has_content = True
@@ -252,3 +249,12 @@ def assert_no_loop_condition(current_url, next_url):
         logger.error(error_message)
         raise Exception(error_message)
     return next_url
+
+
+class BearerTokenAuth(requests.auth.AuthBase):
+    def __init__(self, token):
+        self.token = token
+
+    def __call__(self, response):
+        response.headers["authorization"] = "Bearer {}".format(self.token)
+        return response
