@@ -17,8 +17,22 @@
                 "type": "OAUTH2",
                 "authorizationEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
                 "tokenEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-                "scope": "offline_access files.read.all files.readwrite"
+                "scope": "offline_access files.read.all files.readwrite files.readwrite.all"
             }
+        },
+        {
+            "name": "authorizationEndpoint",
+            "label": "Authorization endpoint",
+            "type": "STRING",
+            "description": "Optional, see documentation",
+            "mandatory": false
+        },
+        {
+            "name": "tokenEndpoint",
+            "label": "Token endpoint",
+            "type": "STRING",
+            "description": "Optional, see documentation",
+            "mandatory": false
         }
     ]
 }
