@@ -23,11 +23,11 @@ class OneDriveClient():
         self.shared_with_me = None
         self.drive_id = None
         self.shared_folder_root = shared_folder_root
+        self.session = requests.Session()
+        self.session.auth = BearerTokenAuth(access_token)
         if shared_folder_root:
             self.shared_with_me = self.get_shared_with_me()
             self.drive_id = self.get_shared_directory_drive_id(shared_folder_root)
-        self.session = requests.Session()
-        self.session.auth = BearerTokenAuth(access_token)
 
     def upload(self, path, file_handle):
         # https://docs.microsoft.com/fr-fr/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online

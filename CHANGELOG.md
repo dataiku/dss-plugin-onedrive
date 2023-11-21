@@ -4,6 +4,7 @@
 
 - List directory content past 200 items
 - SSO authorization and token endpoint overwrite for single tenant Azure apps (available on DSS v12.4+)
+- Fix file upload to shared folder
 
 ## [Version 1.0.3](https://github.com/dataiku/dss-plugin-onedrive/releases/tag/v1.0.3) - Bugfix release - 2023-04-20
 
