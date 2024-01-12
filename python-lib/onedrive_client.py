@@ -92,7 +92,8 @@ class OneDriveClient():
             command = ""
         else:
             command = "/" + command
-        response = requests.post(self.get_path_endpoint(path, is_item=True) + command, headers=self.generate_header())
+        headers = self.generate_header()
+        response = requests.post(self.get_path_endpoint(path, is_item=True) + command, headers=headers)
         return response
 
     def get_upload_metadata(self, name, description=None):
@@ -170,8 +171,16 @@ class OneDriveClient():
         return response
 
     def get_children(self, path):
-        response = requests.get(self.get_path_endpoint(path) + "/children", headers=self.generate_header())
-        return response
+        url = self.get_path_endpoint(path) + "/children"
+        while url:
+            response = requests.get(url, headers=self.generate_header())
+            assert_response_ok(response)
+            json_response = response.json()
+            next_page_url = get_next_page_url(json_response)
+            url = assert_no_loop_condition(url, next_page_url)
+            children = json_response.get(OneDriveConstants.VALUE_CONTAINER, [])
+            for child in children:
+                yield child
 
     def get_content(self, path):
         response = requests.get(self.get_path_endpoint(path) + "/content", headers=self.generate_header())
@@ -208,3 +217,38 @@ class OneDriveClient():
             'name': name
         }
         return header
+
+
+def assert_response_ok(response, context=None, can_raise=True):
+    error_message = None
+    response_has_content = False
+    if type(response) != requests.models.Response:
+        error_message = "Incorrect response"
+    else:
+        response_has_content = True
+        status_code = response.status_code
+        if status_code < 400:
+            return None
+        error_message = "Error {}".format(status_code)
+    if context:
+        error_message += " while {}".format(context)
+    if can_raise:
+        if response_has_content:
+            logger.error("Dumping response content:{}".format(response.content))
+        raise Exception(error_message)
+    return error_message
+
+
+def get_next_page_url(json_response):
+    next_page_url = json_response.get(OneDriveConstants.NEXT_URL_KEY)
+    if next_page_url:
+        logger.info("Next page found:{}".format(next_page_url))
+    return next_page_url
+
+
+def assert_no_loop_condition(current_url, next_url):
+    if current_url == next_url:
+        error_message = "Loop condition on url {}".format(next_url)
+        logger.error(error_message)
+        raise Exception(error_message)
+    return next_url

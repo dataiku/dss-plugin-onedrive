@@ -13,7 +13,7 @@ class SafeLogger(object):
         self.forbiden_keys = forbiden_keys
 
     def info(self, message):
-        self.logger.warning(message)
+        self.logger.info(message)
 
     def debug(self, message):
         self.logger.debug(message)

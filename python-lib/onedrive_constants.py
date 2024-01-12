@@ -8,6 +8,7 @@ class OneDriveConstants(object):
     LAST_MODIFIED = "lastModifiedDateTime"
     NAME = "name"
     NB_RETRIES_ON_CREATE_UPLOAD_SESSION = 2
+    NEXT_URL_KEY = "@odata.nextLink"
     ROOT = "root"
     SIZE = "size"
     TIME_BEFORE_RETRIES = 1
