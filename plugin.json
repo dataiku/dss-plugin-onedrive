@@ -1,10 +1,10 @@
 {
     "id": "onedrive",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "meta": {
         "label": "OneDrive",
         "description": "Read and write data from/to your OneDrive account",
-        "author": "Dataiku (Alex Bourret)",
+        "author": "Dataiku",
         "icon": "icon-cloud",
         "tags": [
             "Connector",

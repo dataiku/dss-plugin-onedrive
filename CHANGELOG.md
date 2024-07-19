@@ -1,5 +1,9 @@
 # Changelog
 
+## [Version 1.1.1](https://github.com/dataiku/dss-plugin-onedrive/releases/tag/v1.1.1) - Bugfix release - 2024-07-22
+
+- Fix last modified information when listing contents of a OneDrive folder 
+
 ## [Version 1.1.0](https://github.com/dataiku/dss-plugin-onedrive/releases/tag/v1.1.0) - Feature and bugfix release - 2023-05-26
 
 - List directory content past 200 items
