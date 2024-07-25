@@ -165,7 +165,8 @@ class OneDriveFSProvider(FSProvider):
             else:
                 paths.append({
                     DSSConstants.PATH: self.get_lnt_path(path + "/" + onedrive_child.get_name()),
-                    DSSConstants.SIZE: onedrive_child.get_size()
+                    DSSConstants.SIZE: onedrive_child.get_size(),
+                    DSSConstants.LAST_MODIFIED: onedrive_child.get_last_modified(),
                 })
                 if first_non_empty:
                     return paths
