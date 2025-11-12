@@ -6,10 +6,8 @@
         "description": "Read and write data from/to your OneDrive account",
         "author": "Dataiku",
         "icon": "icon-cloud",
-        "tags": [
-            "Connector",
-            "Cloud"
-        ],
+        "category": "Connect",
+        "tags": ["Data source","Export","Microsoft"],
         "url": "https://www.dataiku.com/dss/plugins/info/onedrive.html",
         "licenseInfo": "Apache Software License",
         "supportLevel": "NOT_SUPPORTED"
