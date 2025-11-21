@@ -26,7 +26,7 @@ class OneDriveClient():
         self.session = requests.Session()
         self.session.auth = BearerTokenAuth(access_token)
         if shared_folder_root:
-            self.shared_with_me = self.get_shared_with_me()
+            shared_folder_root = shared_folder_root.strip("/")
             self.drive_id = self.get_shared_directory_drive_id(shared_folder_root)
 
     def upload(self, path, file_handle):
@@ -121,40 +121,17 @@ class OneDriveClient():
         return True
 
     def get_item(self, path):
-        if self.drive_id:
-            return self.get_drive_item(path)
         headers = self.generate_header()
         endpoint = self.get_path_endpoint(path)
         response = self.session.get(endpoint, headers=headers)
         onedrive_item = OneDriveItem(response.json())
         return onedrive_item
 
-    def get_drive_item(self, path):
-        item_path, _ = os.path.split(path.strip("/"))
-        headers = self.generate_header()
-        if item_path:
-            request_path = self.get_path_endpoint(path.strip("/"))
-            response = self.session.get(request_path, headers=headers)
-            return OneDriveItem(response.json())
-        else:
-            return self.extract_item(self.shared_with_me, self.shared_folder_root)
-
-    def extract_item(self, items, item_name):
-        for item in items.get("value", []):
-            if item.get("name", "") == item_name:
-                onedrive_item = OneDriveItem(item)
-                return onedrive_item
-        return OneDriveItem(None)
-
-    def get_shared_with_me(self):
-        headers = self.generate_header()
-        response = self.session.get(self.SHARED_WITH_ME_URL, headers=headers)
-        return response.json()
-
     def get_shared_directory_drive_id(self, shared_directory_name):
-        for item in self.shared_with_me.get('value', []):
-            if item.get('name') == shared_directory_name:
-                return get_value_from_path(item, ["remoteItem", "parentReference", "driveId"])
+        url = "https://graph.microsoft.com/v1.0/me/drive/root:/{}:".format(shared_directory_name)
+        item = self.get(url, headers=self.generate_header())
+        drive_id = get_value_from_path(item, ["remoteItem", "parentReference", "driveId"])
+        return drive_id
 
     def delete(self, path):
         response = self.session.delete(self.get_path_endpoint(path, is_item=True), headers=self.generate_header())
