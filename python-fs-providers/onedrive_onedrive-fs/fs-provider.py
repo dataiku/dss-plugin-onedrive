@@ -32,6 +32,8 @@ class OneDriveFSProvider(FSProvider):
         access_token = config.get('onedrive_connection')['onedrive_credentials']
         self.shared_folder_root = config.get("shared_folder", "").strip("/")
         self.client = OneDriveClient(access_token, shared_folder_root=self.shared_folder_root)
+        if self.shared_folder_root.startswith("https://"):
+            self.shared_folder_root = ""
 
     # util methods
     def get_rel_path(self, path):

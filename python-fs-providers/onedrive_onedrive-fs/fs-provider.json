@@ -13,7 +13,7 @@
         },
         {
             "name": "shared_folder",
-            "label": "Shared folder name",
+            "label": "Sharing link",
             "description": "To view a folder shared with you (Optional)",
             "type": "STRING",
             "default": ""
