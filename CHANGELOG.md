@@ -1,5 +1,9 @@
 # Changelog
 
+## [Version 1.1.2](https://github.com/dataiku/dss-plugin-onedrive/releases/tag/v1.1.2) - Bugfix release - 2025-11-21
+
+- Fix access to shared folders
+
 ## [Version 1.1.1](https://github.com/dataiku/dss-plugin-onedrive/releases/tag/v1.1.1) - Bugfix release - 2024-07-22
 
 - Fix last modified information when listing contents of a OneDrive folder 
