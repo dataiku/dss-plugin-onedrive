@@ -126,7 +126,7 @@ class OneDriveClient():
         return onedrive_item
 
     def get_shared_directory_drive_id(self, shared_directory_name):
-        url = "https://graph.microsoft.com/v1.0/me/insights/shared"
+        url = self.SHARED_WITH_ME_URL
         while url:
             items = self.get(url, headers=self.generate_header())
             for item in items.get("value", []):
