@@ -11,4 +11,4 @@ class DSSConstants(object):
     CHILDREN = 'children'
     AUTH_OAUTH = "oauth"
     AUTH_LOGIN = "login"
-    PLUGIN_VERSION = "1.1.0"
+    PLUGIN_VERSION = "1.1.3-beta.1"
