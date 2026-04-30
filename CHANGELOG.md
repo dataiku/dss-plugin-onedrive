@@ -1,5 +1,9 @@
 # Changelog
 
+## [Version 1.1.3](https://github.com/dataiku/dss-plugin-onedrive/releases/tag/v1.1.3) - Bugfix release - 2026-04-30
+
+- Accepts subfolders in shared folders box
+
 ## [Version 1.1.2](https://github.com/dataiku/dss-plugin-onedrive/releases/tag/v1.1.2) - Bugfix release - 2025-11-21
 
 - Fix access to shared folders
