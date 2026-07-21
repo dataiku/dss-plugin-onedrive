@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.2.0 - Enhancement release - 2026-07-20
+
+- Added supported Python versions: 3.11, 3.12, 3.13, 3.14
+
 ## [Version 1.1.2](https://github.com/dataiku/dss-plugin-onedrive/releases/tag/v1.1.2) - Bugfix release - 2025-11-21
 
 - Fix access to shared folders
