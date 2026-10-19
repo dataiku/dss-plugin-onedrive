@@ -1,9 +1,11 @@
 # Changelog
 
-## Version 1.2.0 - Enhancement release - 2026-10-12
+## Version 1.2.0 - Enhancement release - 2026-10-19
 
 - Added supported Python versions: 3.11, 3.12, 3.13, 3.14
 - Makefile cleanup: release_info.json lines removed
+- Fix uploads to pre-authenticated OneDrive URLs and report failed or incomplete transfers
+- Explicitly replace existing files when creating upload sessions
 
 ## [Version 1.1.2](https://github.com/dataiku/dss-plugin-onedrive/releases/tag/v1.1.2) - Bugfix release - 2025-11-21
 
