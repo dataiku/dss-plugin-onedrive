@@ -46,8 +46,25 @@ class OneDriveClient():
             "Content-Length": "{}".format(len(data)),
             "Content-Range": "bytes {}-{}/{}".format(next_expected_range_low, next_expected_range_low + len(data) - 1, file_size)
         }
-        response = self.session.put(url, headers=headers, data=data)
+        # The upload URL is preauthenticated; Graph bearer credentials must not
+        # be sent to the upload host (including credentials from .netrc).
+        response = requests.put(url, headers=headers, data=data,
+                                auth=lambda request: request, timeout=120)
+        expected_statuses = (200, 201) if next_expected_range_low + len(data) == file_size else (202,)
+        if response.status_code not in expected_statuses:
+            raise Exception("OneDrive upload failed: HTTP {} ({})".format(
+                response.status_code, self._get_error_code(response)))
+        if response.status_code in (200, 201):
+            if response.json().get("size") != file_size:
+                raise Exception("OneDrive upload completed with an unexpected file size")
         return response
+
+    def _get_error_code(self, response):
+        try:
+            code = response.json().get("error", {}).get("code", "none")
+            return ''.join(c for c in str(code) if c.isalnum() or c in '_-')[:100]
+        except (ValueError, AttributeError):
+            return "non_json_response"
 
     def file_size(self, file_handle):
         file_handle.seek(0, 2)
@@ -57,7 +74,8 @@ class OneDriveClient():
         number_retries = OneDriveConstants.NB_RETRIES_ON_CREATE_UPLOAD_SESSION
         while number_retries:
             logger.info("create_upload_session post to {}".format(path))
-            response = self.post(path, command=OneDriveConstants.CREATE_UPLOAD_SESSION)
+            response = self.post(path, command=OneDriveConstants.CREATE_UPLOAD_SESSION,
+                                 metadata={"item": {"@microsoft.graph.conflictBehavior": "replace"}})
             response_json = response.json()
             if OneDriveConstants.UPLOAD_URL in response_json:
                 return response_json[OneDriveConstants.UPLOAD_URL]
@@ -69,7 +87,10 @@ class OneDriveClient():
                     logger.info("itemNotFound error on create_upload_session, retrying")
                     sleep(OneDriveConstants.TIME_BEFORE_RETRIES)
                 else:
-                    raise Exception("Can't create upload session")
+                    raise Exception("Can't create upload session: HTTP {} ({})".format(
+                        response.status_code, self._get_error_code(response)))
+
+        raise Exception("Can't create upload session: itemNotFound after retries")
 
     def loop_items(self, response):
         if OneDriveConstants.VALUE_CONTAINER in response:
@@ -92,7 +113,8 @@ class OneDriveClient():
         else:
             command = "/" + command
         headers = self.generate_header()
-        response = self.session.post(self.get_path_endpoint(path, is_item=True) + command, headers=headers)
+        response = self.session.post(self.get_path_endpoint(path, is_item=True) + command,
+                                     headers=headers, json=metadata, timeout=120)
         return response
 
     def move(self, from_path, to_path):
